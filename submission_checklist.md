@@ -86,6 +86,7 @@ Run from project root (`mini-google-v2`):
 
 ```bash
 python -m compileall .
+python -m pytest -q
 python main.py status
 python main.py server --port 8080
 ```

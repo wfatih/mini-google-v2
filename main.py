@@ -9,6 +9,7 @@ Commands
   python main.py search <query>                Search the index
   python main.py status                        Print index statistics
   python main.py reset                         Wipe the index and visited set
+  python main.py export-pdata [--out PATH]     Export legacy p.data text file
 """
 
 import argparse
@@ -202,6 +203,13 @@ def cmd_reset(args):
     print("[reset] Index, visited URLs, and queue state cleared.")
 
 
+def cmd_export_pdata(args):
+    """Export SQLite index into legacy p.data text format."""
+    idx = _make_index()
+    count = idx.export_pdata(args.out)
+    print(f"[export-pdata] Wrote {count} entries to {os.path.abspath(args.out)}")
+
+
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
@@ -240,6 +248,11 @@ def build_parser() -> argparse.ArgumentParser:
     pr = sub.add_parser("reset", help="Wipe the index and all crawl data")
     pr.add_argument("--yes", action="store_true", help="Skip confirmation prompt")
 
+    # export-pdata
+    pexp = sub.add_parser("export-pdata", help="Export index into legacy p.data format")
+    pexp.add_argument("--out", default=os.path.join("data", "p.data"),
+                      help="Output path for exported p.data (default: data/p.data)")
+
     return p
 
 
@@ -252,6 +265,7 @@ def main():
         "search": cmd_search,
         "status": cmd_status,
         "reset":  cmd_reset,
+        "export-pdata": cmd_export_pdata,
     }
     dispatch[args.command](args)
 

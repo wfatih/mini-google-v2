@@ -16,6 +16,7 @@ This rewards:
   - Shallow pages (closer to root) (+depth penalty removed)
 """
 
+import os
 import re
 import sqlite3
 import time
@@ -271,6 +272,34 @@ class InvertedIndex(_ThreadLocalDB):
             "visited": int(visited),
             "sessions": int(sessions),
         }
+
+    def export_pdata(self, output_path: str) -> int:
+        """Export ``word_index`` rows into legacy ``p.data`` text format.
+
+        Output format (space-separated, one row per line):
+            ``word url origin depth frequency``
+
+        Args:
+            output_path: Target file path (e.g. ``data/p.data``).
+
+        Returns:
+            Number of lines written.
+        """
+        abs_path = os.path.abspath(output_path)
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+
+        rows = self._conn().execute(
+            "SELECT word, url, origin, depth, frequency "
+            "FROM word_index ORDER BY word, url"
+        ).fetchall()
+
+        with open(abs_path, "w", encoding="utf-8") as handle:
+            for row in rows:
+                handle.write(
+                    f"{row['word']} {row['url']} {row['origin']} "
+                    f"{row['depth']} {row['frequency']}\n"
+                )
+        return len(rows)
 
     # ------------------------------------------------------------------
     # Reset
