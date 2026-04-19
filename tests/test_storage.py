@@ -30,6 +30,11 @@ def test_index_search_and_export_pdata(tmp_path: Path):
         word_counts={"python": 1, "agent": 4},
     )
 
+    auto_pdata = tmp_path / "p.data"
+    assert auto_pdata.exists()
+    auto_content = auto_pdata.read_text(encoding="utf-8")
+    assert "python https://example.com/python https://example.com 1 3" in auto_content
+
     plain = index.search("python", limit=10)
     assert len(plain) == 2
     assert plain[0][0] == "https://example.com/python"

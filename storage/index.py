@@ -19,6 +19,7 @@ This rewards:
 import os
 import re
 import sqlite3
+import threading
 import time
 from typing import Dict, List, Optional, Tuple
 
@@ -56,6 +57,14 @@ class InvertedIndex(_ThreadLocalDB):
 
     def __init__(self, db_path: str):
         super().__init__(db_path)
+        self._pdata_path = os.path.join(
+            os.path.dirname(os.path.abspath(db_path)),
+            "p.data",
+        )
+        self._pdata_export_lock = threading.Lock()
+        self._last_pdata_export_monotonic = 0.0
+        self._pdata_export_interval_s = 1.0
+        self._maybe_sync_pdata(force=True)
 
     # ------------------------------------------------------------------
     # Write path
@@ -116,6 +125,7 @@ class InvertedIndex(_ThreadLocalDB):
                 )
 
             conn.commit()
+            self._maybe_sync_pdata(force=True)
             return True
 
         except sqlite3.OperationalError:
@@ -301,6 +311,18 @@ class InvertedIndex(_ThreadLocalDB):
                 )
         return len(rows)
 
+    def _maybe_sync_pdata(self, force: bool = False) -> None:
+        """Periodically refresh auto-generated p.data from SQLite."""
+        now = time.monotonic()
+        if not force and (now - self._last_pdata_export_monotonic) < self._pdata_export_interval_s:
+            return
+        with self._pdata_export_lock:
+            now = time.monotonic()
+            if not force and (now - self._last_pdata_export_monotonic) < self._pdata_export_interval_s:
+                return
+            self.export_pdata(self._pdata_path)
+            self._last_pdata_export_monotonic = now
+
     # ------------------------------------------------------------------
     # Reset
     # ------------------------------------------------------------------
@@ -316,3 +338,4 @@ class InvertedIndex(_ThreadLocalDB):
         conn.execute("DELETE FROM word_index")
         conn.execute("DELETE FROM visited")
         conn.commit()
+        self._maybe_sync_pdata(force=True)
