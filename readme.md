@@ -7,6 +7,10 @@
 
 This implementation is built with a **multi-agent development workflow** (documented in `multi_agent_workflow.md`) and focuses on language-native components for the core logic.
 
+## Github Repository
+
+- [https://github.com/wfatih/mini-google-v2](https://github.com/wfatih/mini-google-v2)
+
 ## Features
 
 - Async BFS crawl engine (`asyncio`) with bounded queue back-pressure.
