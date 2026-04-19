@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>mini-google v2</title>
+<style>
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a24;
+  --surface2: #252535;
+  --surface3: #2e2e42;
+  --accent: #6C63FF;
+  --accent2: #00D4AA;
+  --text: #e8e8f0;
+  --text2: #9090a8;
+  --danger: #ff5f5f;
+  --success: #00D4AA;
+  --warning: #ffa040;
+  --border: #2a2a3a;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.logo span { color: var(--accent2); }
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+.status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--text2);
+  transition: background 0.3s;
+}
+.status-dot.active {
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(0,212,170,0); }
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 16px 24px 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: all 0.2s;
+  position: relative;
+}
+.tab-btn:hover { color: var(--text); background: var(--surface2); }
+.tab-btn.active {
+  color: var(--accent);
+  background: var(--surface);
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+/* Main */
+main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text2);
+  margin-bottom: 14px;
+}
+
+/* Form */
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label {
+  font-size: 0.78rem;
+  color: var(--text2);
+  font-weight: 500;
+}
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.url-group { flex: 1; min-width: 280px; }
+.form-group input[type="number"] { width: 90px; }
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 2px;
+}
+.checkbox-group input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.checkbox-group label { font-size: 0.88rem; color: var(--text); cursor: pointer; }
+
+/* Buttons */
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 9px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #7d75ff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #ff7575; }
+.btn-warn { background: var(--warning); color: #000; }
+.btn-warn:hover:not(:disabled) { background: #ffb060; }
+.btn-ghost {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--text2); }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-box {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Progress bar */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.progress-label { font-size: 0.8rem; color: var(--text2); min-width: 56px; }
+.progress-bar-outer {
+  flex: 1;
+  height: 8px;
+  background: var(--surface3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-inner {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.5s ease;
+}
+.progress-bar-inner.warn { background: var(--warning); }
+.progress-bar-inner.danger { background: var(--danger); }
+.progress-val { font-size: 0.8rem; color: var(--text2); min-width: 70px; text-align: right; }
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.badge-active { background: rgba(0,212,170,0.15); color: var(--success); }
+.badge-idle { background: var(--surface3); color: var(--text2); }
+.badge-paused { background: rgba(255,160,64,0.15); color: var(--warning); }
+.badge-done { background: rgba(108,99,255,0.15); color: var(--accent); }
+.badge-running { background: rgba(0,212,170,0.15); color: var(--success); }
+.badge-error { background: rgba(255,95,95,0.15); color: var(--danger); }
+
+/* Recent pages list */
+.recent-list {
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.recent-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.recent-list li:last-child { border-bottom: none; }
+.recent-list .depth-tag {
+  background: var(--surface3);
+  color: var(--text2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+.recent-list a {
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+.recent-list a:hover { text-decoration: underline; }
+
+/* Search */
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.search-bar input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 10px 16px;
+  font-size: 1rem;
+  outline: none;
+}
+.search-bar input:focus { border-color: var(--accent); }
+
+/* Results */
+.results-info { font-size: 0.82rem; color: var(--text2); margin-bottom: 12px; }
+.results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.results-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--text2);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.results-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.results-table tr:hover td { background: var(--surface2); }
+.results-table .url-cell a { color: var(--accent); text-decoration: none; word-break: break-all; }
+.results-table .url-cell a:hover { text-decoration: underline; }
+.results-table .meta { color: var(--text2); font-size: 0.78rem; margin-top: 3px; }
+.results-table .score { color: var(--accent2); font-weight: 600; }
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text2);
+}
+.empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+/* Sessions table */
+.sessions-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.sessions-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--text2);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.sessions-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); }
+.sessions-table tr:hover td { background: var(--surface2); }
+.origin-cell { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Status bar */
+#statusbar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 0.78rem;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.sb-item { display: flex; align-items: center; gap: 5px; }
+.sb-item .val { color: var(--text); font-weight: 600; }
+.sb-throttled { color: var(--danger); font-weight: 600; }
+
+/* Toasts */
+#toasts {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 999;
+}
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  min-width: 220px;
+  max-width: 380px;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+.toast.warn { border-left-color: var(--warning); }
+@keyframes slideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--surface3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+/* Throttle badge */
+.throttle-no { color: var(--success); }
+.throttle-yes { color: var(--danger); font-weight: 600; }
+
+@media (max-width: 600px) {
+  main { padding: 12px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  #statusbar { flex-wrap: wrap; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🕷 mini-google<span> v2</span></div>
+  <div class="header-status">
+    <div class="status-dot" id="headerDot"></div>
+    <span id="headerStatusText">IDLE</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('crawler')">Crawler</button>
+  <button class="tab-btn" onclick="switchTab('search')">Search</button>
+  <button class="tab-btn" onclick="switchTab('sessions')">Sessions</button>
+</div>
+
+<main>
+
+  <!-- CRAWLER TAB -->
+  <div class="tab-pane active" id="tab-crawler">
+
+    <div class="card">
+      <div class="card-title">Crawl Settings</div>
+      <div class="form-row">
+        <div class="form-group url-group">
+          <label>Origin URL</label>
+          <input type="text" id="crawlUrl" placeholder="https://example.com" />
+        </div>
+        <div class="form-group">
+          <label>Depth</label>
+          <input type="number" id="crawlDepth" value="2" min="0" max="10" />
+        </div>
+        <div class="form-group">
+          <label>Workers</label>
+          <input type="number" id="crawlWorkers" value="10" min="1" max="50" />
+        </div>
+        <div class="form-group">
+          <label>Rate (req/s)</label>
+          <input type="number" id="crawlRate" value="10" min="1" max="100" step="0.5" />
+        </div>
+        <div class="form-group">
+          <label>Max Queue</label>
+          <input type="number" id="crawlMaxQueue" value="500" min="50" max="5000" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="checkbox-group">
+          <input type="checkbox" id="crawlSameDomain" checked />
+          <label for="crawlSameDomain">Same domain only</label>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btnStart" onclick="startCrawl()">▶ Start Crawl</button>
+        <button class="btn btn-danger" id="btnStop" onclick="stopCrawl()" disabled>■ Stop</button>
+        <button class="btn btn-warn" id="btnPause" onclick="pauseCrawl()" disabled>⏸ Pause</button>
+        <button class="btn btn-ghost" onclick="resetIndex()">🗑 Reset Index</button>
+      </div>
+    </div>
+
+    <div class="card" id="statsCard">
+      <div class="card-title">Live Status</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <span id="crawlerStatusBadge" class="badge badge-idle">■ IDLE</span>
+        <span style="color:var(--text2);font-size:0.82rem;">Elapsed: <span id="elapsed" class="val">—</span></span>
+        <span style="color:var(--text2);font-size:0.82rem;">Throttled: <span id="throttleStatus" class="throttle-no">—</span></span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-value" id="statProcessed">0</span>
+          <div class="stat-label">Processed</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="statFailed" style="color:var(--danger)">0</span>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="statSkipped" style="color:var(--text2)">0</span>
+          <div class="stat-label">Skipped</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="statDropped" style="color:var(--warning)">0</span>
+          <div class="stat-label">Dropped (BP)</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="statPages" style="color:var(--accent)">0</span>
+          <div class="stat-label">Pages Indexed</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="statWords" style="color:var(--accent2)">0</span>
+          <div class="stat-label">Unique Words</div>
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <span class="progress-label">Queue</span>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="queueBar" style="width:0%"></div>
+        </div>
+        <span class="progress-val" id="queueVal">0 / 0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recently Indexed</div>
+      <ul class="recent-list" id="recentList">
+        <li style="color:var(--text2);font-style:italic;">No pages indexed yet.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- SEARCH TAB -->
+  <div class="tab-pane" id="tab-search">
+    <div class="card">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Enter search query…" onkeydown="if(event.key==='Enter')runSearch()" />
+        <button class="btn btn-primary" id="btnSearch" onclick="runSearch()">🔍 Search</button>
+      </div>
+      <div class="checkbox-group" style="margin-bottom:0">
+        <input type="checkbox" id="scoredSearch" checked />
+        <label for="scoredSearch">Show relevance scores</label>
+      </div>
+    </div>
+
+    <div id="searchResultsSection" style="display:none;">
+      <div class="results-info" id="resultsInfo"></div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th>URL</th>
+              <th style="width:80px">Depth</th>
+              <th style="width:90px">Score</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="searchEmpty" class="empty-state">
+      <div class="icon">🔍</div>
+      <div>Enter a query to search indexed pages</div>
+    </div>
+  </div>
+
+  <!-- SESSIONS TAB -->
+  <div class="tab-pane" id="tab-sessions">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="color:var(--text2);font-size:0.85rem;">Past crawl sessions</span>
+      <button class="btn btn-ghost" onclick="loadSessions()" style="padding:6px 14px;font-size:0.8rem;">↻ Refresh</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th style="width:40px">ID</th>
+            <th>Origin</th>
+            <th style="width:60px">Depth</th>
+            <th style="width:90px">Status</th>
+            <th style="width:90px">Pages</th>
+            <th style="width:110px">Duration</th>
+            <th style="width:130px">Started</th>
+          </tr>
+        </thead>
+        <tbody id="sessionsBody">
+          <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2);">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- Status bar -->
+<div id="statusbar">
+  <div class="sb-item">Pages: <span class="val" id="sbPages">0</span></div>
+  <div class="sb-item">Words: <span class="val" id="sbWords">0</span></div>
+  <div class="sb-item">Queue: <span class="val" id="sbQueue">0</span></div>
+  <div class="sb-item">Elapsed: <span class="val" id="sbElapsed">—</span></div>
+  <div class="sb-item" id="sbThrottleItem" style="display:none;">
+    <span class="sb-throttled">⚠ THROTTLED</span>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts"></div>
+
+<script>
+// ============================================================
+// APP STATE
+// ============================================================
+const App = {
+  maxQueue: 500,
+  lastStatus: null,
+  evtSource: null,
+  searchTimeout: null,
+
+  init() {
+    this.connectSSE();
+    this.loadSessions();
+    document.getElementById('searchInput').focus();
+  },
+
+  // ----------------------------------------------------------
+  // SSE
+  // ----------------------------------------------------------
+  connectSSE() {
+    if (this.evtSource) { this.evtSource.close(); }
+    this.evtSource = new EventSource('/api/events');
+    this.evtSource.onmessage = (e) => {
+      try { this.updateStatus(JSON.parse(e.data)); }
+      catch (_) {}
+    };
+    this.evtSource.onerror = () => {
+      setTimeout(() => this.connectSSE(), 3000);
+    };
+  },
+
+  // ----------------------------------------------------------
+  // Status update (from SSE)
+  // ----------------------------------------------------------
+  updateStatus(data) {
+    this.lastStatus = data;
+    const active = data.active || false;
+    const paused = data.paused || false;
+    const stats = data.stats || {};
+    const pages = data.pages_indexed || 0;
+    const words = data.words_indexed || 0;
+    const qd = stats.queue_depth || 0;
+    const maxQ = data.max_queue || this.maxQueue;
+    this.maxQueue = maxQ;
+    const throttled = stats.throttled || false;
+    const elapsed = stats.elapsed_s != null ? stats.elapsed_s.toFixed(1) + 's' : '—';
+
+    // Header dot
+    const dot = document.getElementById('headerDot');
+    const headerText = document.getElementById('headerStatusText');
+    dot.className = 'status-dot' + (active ? ' active' : '');
+    headerText.textContent = paused ? 'PAUSED' : (active ? 'ACTIVE' : 'IDLE');
+
+    // Badge
+    const badge = document.getElementById('crawlerStatusBadge');
+    if (paused) {
+      badge.className = 'badge badge-paused'; badge.textContent = '⏸ PAUSED';
+    } else if (active) {
+      badge.className = 'badge badge-active'; badge.textContent = '● ACTIVE';
+    } else {
+      badge.className = 'badge badge-idle'; badge.textContent = '■ IDLE';
+    }
+
+    // Elapsed & throttle
+    document.getElementById('elapsed').textContent = elapsed;
+    const tEl = document.getElementById('throttleStatus');
+    tEl.className = throttled ? 'throttle-yes' : 'throttle-no';
+    tEl.textContent = throttled ? 'YES ⚠' : 'NO ✓';
+
+    // Stat boxes
+    document.getElementById('statProcessed').textContent = fmt(stats.urls_processed);
+    document.getElementById('statFailed').textContent = fmt(stats.urls_failed);
+    document.getElementById('statSkipped').textContent = fmt(stats.urls_skipped);
+    document.getElementById('statDropped').textContent = fmt(stats.urls_dropped_backpressure);
+    document.getElementById('statPages').textContent = fmt(pages);
+    document.getElementById('statWords').textContent = fmtK(words);
+
+    // Queue bar
+    const pct = maxQ > 0 ? Math.min(100, (qd / maxQ) * 100) : 0;
+    const bar = document.getElementById('queueBar');
+    bar.style.width = pct + '%';
+    bar.className = 'progress-bar-inner' + (pct > 80 ? ' danger' : pct > 50 ? ' warn' : '');
+    document.getElementById('queueVal').textContent = `${fmt(qd)} / ${fmt(maxQ)}`;
+
+    // Status bar
+    document.getElementById('sbPages').textContent = fmt(pages);
+    document.getElementById('sbWords').textContent = fmtK(words);
+    document.getElementById('sbQueue').textContent = fmt(qd);
+    document.getElementById('sbElapsed').textContent = elapsed;
+    document.getElementById('sbThrottleItem').style.display = throttled ? 'flex' : 'none';
+
+    // Buttons
+    document.getElementById('btnStart').disabled = active;
+    document.getElementById('btnStop').disabled = !active;
+    document.getElementById('btnPause').disabled = !active;
+    document.getElementById('btnPause').textContent = paused ? '▶ Resume' : '⏸ Pause';
+
+    // Recent pages
+    if (data.recent_pages && data.recent_pages.length > 0) {
+      this.updateRecentPages(data.recent_pages);
+    }
+  },
+
+  updateRecentPages(pages) {
+    const ul = document.getElementById('recentList');
+    ul.innerHTML = pages.map(p => `
+      <li>
+        <span class="depth-tag">d${p.depth}</span>
+        <a href="${esc(p.url)}" target="_blank">${esc(truncate(p.url, 80))}</a>
+      </li>`).join('');
+  },
+
+  // ----------------------------------------------------------
+  // Crawler controls
+  // ----------------------------------------------------------
+  async startCrawl() {
+    const url = document.getElementById('crawlUrl').value.trim();
+    if (!url) { toast('Please enter a URL', 'warn'); return; }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      toast('URL must start with http:// or https://', 'warn'); return;
+    }
+    const body = {
+      url,
+      depth: parseInt(document.getElementById('crawlDepth').value) || 2,
+      max_workers: parseInt(document.getElementById('crawlWorkers').value) || 10,
+      rate: parseFloat(document.getElementById('crawlRate').value) || 10,
+      max_queue: parseInt(document.getElementById('crawlMaxQueue').value) || 500,
+      same_domain: document.getElementById('crawlSameDomain').checked,
+    };
+    this.maxQueue = body.max_queue;
+    const res = await api('POST', '/api/index', body);
+    if (res.ok) {
+      const d = await res.json();
+      toast(`Crawl started — session #${d.session_id || '?'}`, 'success');
+    } else {
+      const e = await res.json().catch(() => ({detail: 'Unknown error'}));
+      toast('Start failed: ' + (e.detail || e.message || JSON.stringify(e)), 'error');
+    }
+  },
+
+  async stopCrawl() {
+    const res = await api('POST', '/api/stop');
+    if (res.ok) toast('Crawl stopped', 'success');
+    else toast('Stop failed', 'error');
+    setTimeout(() => this.loadSessions(), 1000);
+  },
+
+  async pauseCrawl() {
+    const res = await api('POST', '/api/pause');
+    if (res.ok) {
+      const d = await res.json();
+      toast(d.status === 'paused' ? 'Crawl paused' : 'Crawl resumed', 'success');
+    } else { toast('Pause/resume failed', 'error'); }
+  },
+
+  async resetIndex() {
+    if (!confirm('Reset all index data? This cannot be undone.')) return;
+    const res = await api('DELETE', '/api/reset');
+    if (res.ok) {
+      toast('Index reset successfully', 'success');
+      document.getElementById('recentList').innerHTML =
+        '<li style="color:var(--text2);font-style:italic;">No pages indexed yet.</li>';
+    } else { toast('Reset failed', 'error'); }
+  },
+
+  // ----------------------------------------------------------
+  // Search
+  // ----------------------------------------------------------
+  async runSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) { toast('Enter a search query', 'warn'); return; }
+
+    const btn = document.getElementById('btnSearch');
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+
+    const scored = document.getElementById('scoredSearch').checked;
+    const res = await api('GET', `/api/search?q=${encodeURIComponent(q)}&limit=50&scored=${scored}`);
+
+    btn.innerHTML = '🔍 Search';
+    btn.disabled = false;
+
+    if (!res.ok) { toast('Search failed', 'error'); return; }
+    const data = await res.json();
+    this.renderResults(q, data);
+  },
+
+  renderResults(q, data) {
+    const results = data.results || [];
+    document.getElementById('searchEmpty').style.display = 'none';
+    document.getElementById('searchResultsSection').style.display = 'block';
+    document.getElementById('resultsInfo').textContent =
+      `${fmt(data.count || results.length)} result${results.length !== 1 ? 's' : ''} for "${q}"`;
+
+    const tbody = document.getElementById('resultsBody');
+    if (results.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text2);">No results found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = results.map((r, i) => `
+      <tr>
+        <td style="color:var(--text2)">${i + 1}</td>
+        <td class="url-cell">
+          <a href="${esc(r.url)}" target="_blank">${esc(truncate(r.url, 90))}</a>
+          <div class="meta">origin: ${esc(truncate(r.origin || '', 60))}</div>
+        </td>
+        <td>${r.depth ?? '—'}</td>
+        <td class="score">${r.score != null ? fmt(Math.round(r.score)) : '—'}</td>
+      </tr>`).join('');
+  },
+
+  // ----------------------------------------------------------
+  // Sessions
+  // ----------------------------------------------------------
+  async loadSessions() {
+    const res = await api('GET', '/api/sessions');
+    if (!res.ok) {
+      document.getElementById('sessionsBody').innerHTML =
+        '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2);">Failed to load sessions.</td></tr>';
+      return;
+    }
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    const tbody = document.getElementById('sessionsBody');
+    if (sessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2);">No sessions yet. Start a crawl!</td></tr>';
+      return;
+    }
+    tbody.innerHTML = sessions.map(s => {
+      const dur = s.finished_at && s.started_at
+        ? fmtDur((s.finished_at - s.started_at) * 1000)
+        : (s.status === 'running' ? 'running…' : '—');
+      const badgeClass = s.status === 'running' ? 'badge-running' : 'badge-done';
+      const started = s.started_at ? new Date(s.started_at * 1000).toLocaleString() : '—';
+      return `<tr>
+        <td style="color:var(--text2)">${s.id}</td>
+        <td><div class="origin-cell" title="${esc(s.origin)}">${esc(s.origin)}</div></td>
+        <td>${s.depth}</td>
+        <td><span class="badge ${badgeClass}">${s.status}</span></td>
+        <td>${fmt(s.pages_indexed || 0)}</td>
+        <td>${dur}</td>
+        <td style="color:var(--text2);font-size:0.78rem;">${started}</td>
+      </tr>`;
+    }).join('');
+  },
+};
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) {
+  if (n == null) return '—';
+  return Number(n).toLocaleString();
+}
+function fmtK(n) {
+  if (n == null) return '—';
+  return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n);
+}
+function fmtDur(ms) {
+  if (!ms || ms < 0) return '—';
+  const s = Math.round(ms / 1000);
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  return m < 60 ? `${m}m ${s % 60}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function truncate(s, n) {
+  if (!s) return '';
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: {} };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  try { return await fetch(path, opts); }
+  catch (e) { return { ok: false, json: async () => ({ detail: e.message }) }; }
+}
+
+function toast(msg, type = 'info') {
+  const div = document.createElement('div');
+  div.className = `toast ${type}`;
+  div.textContent = msg;
+  document.getElementById('toasts').appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['crawler','search','sessions'][i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+  if (name === 'sessions') App.loadSessions();
+  if (name === 'search') document.getElementById('searchInput').focus();
+}
+
+// Global wrappers for onclick attributes
+function startCrawl() { App.startCrawl(); }
+function stopCrawl() { App.stopCrawl(); }
+function pauseCrawl() { App.pauseCrawl(); }
+function resetIndex() { App.resetIndex(); }
+function runSearch() { App.runSearch(); }
+function loadSessions() { App.loadSessions(); }
+
+// ============================================================
+// BOOT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
